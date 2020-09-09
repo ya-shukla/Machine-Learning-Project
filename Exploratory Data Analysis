@@ -1,0 +1,266 @@
+import pandas as pd
+import numpy as np
+from sklearn import linear_model, datasets
+import seaborn as sns
+import matplotlib.pyplot as plt 
+from sklearn.preprocessing import StandardScaler
+
+# Loading data
+data = pd.read_csv('pmsm_temperature_data.csv')
+
+# showing the first 5 rows
+data.head()
+
+data.info()
+
+y = data[['pm']]
+data = data.drop(['pm'], axis = 1)
+data = data.drop(['stator_yoke', 'stator_tooth','stator_winding','profile_id'], axis = 1)
+data['id_square'] = data['i_d']**2
+data['iq_square'] = data['i_q']**2
+data['ud_square'] = data['u_d']**2
+data['uq_square'] = data['u_q']**2
+data['I_s'] = (data['id_square']+ data['iq_square'])**(1/2)
+data['U_s'] = (data['ud_square']+ data['uq_square'])**(1/2)
+data['S'] = (3/2)*data['I_s']*data['U_s']
+data.head()
+
+
+data['I_s'] = ((data['I_s'])- 1.279973) * (1/0.596265)
+data['U_s'] = ((data['U_s'])- 1.344748) * (1/0.438330)
+data['S'] = ((data['S'])- 2.660268) * (1/1.836155)
+
+data.describe()
+# create box plots of the 5 features seen above
+data.ambient.plot(kind='box')
+plt.show()
+data.coolant.plot(kind='box')
+plt.show()
+data.u_d.plot(kind='box')
+plt.show()
+data.u_q.plot(kind='box')
+plt.show()
+data.motor_speed.plot(kind='box')
+plt.show()
+data.torque.plot(kind='box')
+plt.show()
+data.i_d.plot(kind='box')
+plt.show()
+data.i_q.plot(kind='box')
+plt.show()
+data.id_square.plot(kind='box')
+plt.show()
+data.iq_square.plot(kind='box')
+plt.show()
+data.ud_square.plot(kind='box')
+plt.show()
+data.uq_square.plot(kind='box')
+plt.show()
+data.I_s.plot(kind='box')
+plt.show()
+data.U_s.plot(kind='box')
+plt.show()
+data.S.plot(kind='box')
+plt.show()
+
+# create histograms of the 8 features seen above
+
+data.ambient.plot(kind='hist')
+plt.xlabel('ambient')
+plt.title('Distribution of ambient')
+plt.show()
+data.coolant.plot(kind='hist')
+plt.xlabel('coolant')
+plt.title('Distribution of coolant')
+plt.show()
+data.u_d.plot(kind='hist')
+plt.xlabel('u_d')
+plt.title('Distribution of u_d')
+plt.show()
+data.u_q.plot(kind='hist')
+plt.xlabel('u_q')
+plt.title('Distribution of u_q')
+plt.show()
+data.motor_speed.plot(kind='hist')
+plt.xlabel('motor_speed')
+plt.title('Distribution of motor_speed')
+plt.show()
+data.torque.plot(kind='hist')
+plt.xlabel('torque')
+plt.title('Distribution of torque')
+plt.show()
+data.i_d.plot(kind='hist')
+plt.xlabel('i_d')
+plt.title('Distribution of i_d')
+plt.show()
+data.id_square.plot(kind='hist')
+plt.xlabel('id_square')
+plt.title('Distribution of id_square')
+plt.show()
+data.iq_square.plot(kind='hist')
+plt.xlabel('iq_square')
+plt.title('Distribution of iq_square')
+plt.show()
+data.ud_square.plot(kind='hist')
+plt.xlabel('ud_square')
+plt.title('Distribution of ud_square')
+plt.show()
+data.uq_square.plot(kind='hist')
+plt.xlabel('uq_square')
+plt.title('Distribution of uq_square')
+plt.show()
+data.I_s.plot(kind='hist')
+plt.xlabel('I_s')
+plt.title('Distribution of I_s')
+plt.show()
+data.U_s.plot(kind='hist')
+plt.xlabel('U_s')
+plt.title('Distribution of U_s')
+plt.show()
+data.S.plot(kind='hist')
+plt.xlabel('S')
+plt.title('Distribution of S')
+plt.show()
+
+sns.violinplot(y = 'ambient', data=data )
+plt.show()
+sns.violinplot(y = 'coolant', data=data )
+plt.show()
+sns.violinplot(y = 'u_d', data=data )
+plt.show()
+sns.violinplot(y = 'u_q', data=data )
+plt.show()
+sns.violinplot(y = 'motor_speed', data=data )
+plt.show()
+sns.violinplot(y = 'torque', data=data )
+plt.show()
+sns.violinplot(y = 'i_d', data=data )
+plt.show()
+sns.violinplot(y = 'i_q', data=data )
+plt.show()
+sns.violinplot(y = 'id_square', data=data )
+plt.show()
+sns.violinplot(y = 'iq_square', data=data )
+plt.show()
+sns.violinplot(y = 'ud_square', data=data )
+plt.show()
+sns.violinplot(y = 'uq_square', data=data )
+plt.show()
+sns.violinplot(y = 'I_s', data=data )
+plt.show()
+sns.violinplot(y = 'U_s', data=data )
+plt.show()
+sns.violinplot(y = 'S', data=data )
+plt.show()
+
+#Create dummy variable data2 and add output label back to the dataset
+data2 = data.copy()
+data2['Output']= y
+data2.head()
+
+data2.info()
+
+#split the data using an 80:20 random split 
+
+train = data.sample(frac = 0.8, random_state = 42)
+test = data.drop(train.index)
+y_test = y.drop(train.index)
+y_train = y.iloc[train.index]
+print(train.shape)
+print(test.shape)
+print(y_train.shape)
+print(y_test.shape)
+
+#Verify the index is common among the training and testing set
+print(train.index)
+print(y_train.index)
+print(test.index)
+print(y_test.index)
+
+#use the pairplot to plot all features (and labels) in the training set against each other
+train_full = train.copy()
+train_full['Label'] = y_train
+sns.pairplot(data2)
+plt.show()
+
+import math 
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import LinearRegression
+
+Theta_ambient = []
+Theta_coolant = []
+Theta_ud = []
+Theta_uq = []
+Theta_speed = []
+Theta_torque = []
+Theta_id = []
+Theta_iq = []
+Theta_id2 = []
+Theta_iq2 = []
+Theta_ud2 = []
+Theta_uq2 = []
+Theta_Is = []
+Theta_Us = []
+Theta_S = []
+for alpha in np.arange(0.001, 2, 0.1):
+    lasso = Lasso(alpha, max_iter = 10e5)
+    lasso.fit(train,y_train)
+    Theta_ambient.append(lasso.coef_[0]) 
+    Theta_coolant.append(lasso.coef_[1])
+    Theta_ud.append(lasso.coef_[2])
+    Theta_uq.append(lasso.coef_[3])
+    Theta_speed.append(lasso.coef_[4])
+    Theta_torque.append(lasso.coef_[5])
+    Theta_id.append(lasso.coef_[6])
+    Theta_iq.append(lasso.coef_[7])
+    Theta_id2.append(lasso.coef_[8])
+    Theta_iq2.append(lasso.coef_[9])
+    Theta_ud2.append(lasso.coef_[10])
+    Theta_uq2.append(lasso.coef_[11])
+    Theta_Is.append(lasso.coef_[12])
+    Theta_Us.append(lasso.coef_[13])
+    Theta_S.append(lasso.coef_[14])
+plt.plot(Theta_ambient, marker='*', label='ambient')
+plt.plot(Theta_coolant, marker='o', label='coolant')
+plt.plot(Theta_ud, marker='x', label='ud')
+plt.plot(Theta_uq, marker='+', label='coolant')
+plt.plot(Theta_speed, marker='v', label='speed')
+plt.plot(Theta_torque, marker='1', label='torque')
+plt.plot(Theta_id, marker='s', label='id')
+plt.plot(Theta_iq, marker='p', label='iq')
+plt.plot(Theta_id2, marker='h', label='id2')
+plt.plot(Theta_iq2, marker='D', label='iq2')
+plt.plot(Theta_ud2, marker='d', label='ud2')
+plt.plot(Theta_uq2, marker='|', label='uq2')
+plt.plot(Theta_Is, marker='_', label='Is')
+plt.plot(Theta_Us, marker='<', label='Us')
+plt.plot(Theta_S, marker='>', label='S')
+plt.xlabel('alpha',fontsize=10)
+plt.ylabel('Coefficient Magnitude',fontsize=10)
+plt.legend(bbox_to_anchor=(1.05, 1), loc='best', borderaxespad=0.)
+
+corr_matrix_spearman = data2.corr(method = 'spearman').abs()
+# Set font scale
+sns.set(font_scale = 1)
+
+# Set the figure size
+f, ax = plt.subplots(figsize=(12, 12))
+
+# Make heatmap
+sns.heatmap(corr_matrix_spearman, cmap= 'YlGnBu', square=True, ax = ax)
+
+# Tight layout
+f.tight_layout()
+
+corr_matrix_pearson = data2.corr(method = 'pearson').abs()
+# Set font scale
+sns.set(font_scale = 1)
+
+# Set the figure size
+f, ax = plt.subplots(figsize=(12, 12))
+
+# Make heatmap
+sns.heatmap(corr_matrix_pearson, cmap= 'YlGnBu', square=True, ax = ax)
+
+# Tight layout
+f.tight_layout()
